@@ -5,6 +5,7 @@ from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 import os
 
+from elastic import es
 from data import logs
 
 load_dotenv()
@@ -57,6 +58,12 @@ def dashboard(
         return {
             "message": "Invalid API Key"
         }
+    response = es.search(
+        index="logs",
+        size=1000,
+        query={"match_all": {}}
+    )
+    logs =[hit["_source"] for hit in response["hits"]["hits"]]
 
     total_logs = len(logs)
 
@@ -68,7 +75,8 @@ def dashboard(
     suspicious = 0
 
     for log in logs:
-
+        if "severity" not in log or "event" not in log:
+            continue
         severity = log["severity"].lower()
         event = log["event"].lower()
 
@@ -116,17 +124,41 @@ def add_log(
     severity = detect_severity(log.event)
 
     new_log = {
-        "id": len(logs) + 1,
-        "source": log.source,
-        "event": log.event,
-        "severity": severity,
-        "timestamp": datetime.now().isoformat()
+    "source": log.source,
+    "event": log.event,
+    "severity": severity,
+    "timestamp": datetime.now().isoformat()
 }
 
-    logs.append(new_log)
+    es.index(
+    index="logs",
+    document=new_log
+)
+
+    return {
+    "status": "success",
+    "message": "Log added successfully",
+    "log": new_log
+}
+
+@app.get("/logs")
+def get_logs(api_key: bool = Depends(verify_api_key)):
+
+    if not api_key:
+        return {"message": "Invalid API Key"}
+
+    response = es.search(
+        index="logs",
+        size=50,
+        query={"match_all": {}}
+    )
+
+    logs = []
+
+    for hit in response["hits"]["hits"]:
+        logs.append(hit["_source"])
 
     return {
         "status": "success",
-        "message": "Log added successfully",
-        "log": new_log
+        "logs": logs
     }
