@@ -1,5 +1,8 @@
 # AI-Powered SIEM - Machine Learning Module
 
+
+Download link for csv files:https://drive.google.com/drive/folders/1L-aduCw5j2Py3L1gpZr9v5s3eKKcx3T7?usp=drive_link
+
 An AI-powered Security Information and Event Management (SIEM) system that detects anomalous network traffic using Machine Learning and Deep Learning techniques.
 
 This repository contains the Machine Learning module developed for the SIEM project using the CICIDS2017 dataset.
