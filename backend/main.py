@@ -5,8 +5,8 @@ from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 import os
 
-from elastic import es
-from data import logs
+from backend.elastic import es
+from backend.data import logs
 
 load_dotenv()
 

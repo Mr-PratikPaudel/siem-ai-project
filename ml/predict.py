@@ -1,13 +1,20 @@
 import joblib
 import numpy as np
 from tensorflow.keras.models import load_model
+import os
 
 # -----------------------------
 # Load Models
 # -----------------------------
-scaler = joblib.load("models/scaler.pkl")
-iso_model = joblib.load("models/isolation_forest.pkl")
-lstm_model = load_model("models/lstm_autoencoder.keras")
+# ✅ NEW: find the folder containing predict.py
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ✅ NEW: point to ml/models
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+
+scaler = joblib.load(os.path.join(MODELS_DIR, "scaler.pkl"))
+iso_model = joblib.load(os.path.join(MODELS_DIR, "isolation_forest.pkl"))
+lstm_model = load_model(os.path.join(MODELS_DIR, "lstm_autoencoder.keras"))
 
 print("All Models Loaded Successfully!")
 
@@ -52,23 +59,12 @@ def predict(sample):
         "LSTM Autoencoder": lstm_result
     }
 
-import pandas as pd
-
-df = pd.read_csv("dataset/clean_dataset_sample.csv")
-
-X = df.drop("Label", axis=1)
-
-sample = X.iloc[[0]]
-
-result = predict(sample)
-
-print(result)
-
 if __name__ == "__main__":
 
     import pandas as pd
 
-    df = pd.read_csv("dataset/clean_dataset_sample.csv")
+    # ✅ NEW
+    df = pd.read_csv(os.path.join(BASE_DIR, "dataset", "clean_dataset_sample.csv"))
 
     X = df.drop("Label", axis=1)
 
