@@ -8,7 +8,7 @@ import os
 from backend.elastic import es
 from backend.data import logs
 
-load_dotenv()
+load_dotenv("backend/.env")
 
 app = FastAPI()
 
