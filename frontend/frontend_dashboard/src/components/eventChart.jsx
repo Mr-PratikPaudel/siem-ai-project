@@ -41,7 +41,6 @@ function Dashboard() {
   useEffect(() => {
     getDashboard()
       .then((response) => {
-        console.log("Dashboard data:", response.data);
         setDashboardData(response.data.dashboard);
       })
       .catch((error) => {
@@ -52,12 +51,11 @@ function Dashboard() {
 useEffect(() => {
   getAlerts()
     .then((response) => {
-      console.log("RECENT ALERTS RESPONSE:", response);
-      console.log("RECENT ALERTS DATA:", response.data);
-
-      const latest = response.data.slice(-4).reverse();
-
-          console.log("LATEST 4 ALERTS:", latest);
+const latest = response.data
+  .filter((alert) => alert.attack && alert.source && alert.time)
+  .slice(-4)
+  .reverse();
+   console.log("LATEST 4 ALERTS:", latest);
 
           setRecentAlerts(latest);
     })
@@ -522,45 +520,39 @@ useEffect(() => {
             </thead>
 
 
-            <tbody>
+           <tbody>
 
-              {recentAlerts.map((alert) => (
+  {recentAlerts.map((alert) => (
 
-                <tr key={alert.id}>
+    <tr key={alert.id}>
 
-                  <td>
-                    <strong>
-                      {alert.attack}
-                    </strong>
-                  </td>
+      <td>
+        <strong>
+          {alert.attack}
+        </strong>
+      </td>
 
+      <td>
+        {alert.source}
+      </td>
 
-                  <td>
-                    {alert.source}
-                  </td>
+      <td>
+        <span
+          className={`severity ${alert.severity.toLowerCase()}`}
+        >
+          {alert.severity}
+        </span>
+      </td>
 
+      <td>
+        {alert.time}
+      </td>
 
-                  <td>
+    </tr>
 
-                    <span
-                      className={`severity ${alert.severity.toLowerCase()}`}
-                    >
-                      {alert.severity}
-                    </span>
+  ))}
 
-                  </td>
-
-
-                  <td>
-                    {alert.time}
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
+</tbody>
           </table>
 
         </div>
