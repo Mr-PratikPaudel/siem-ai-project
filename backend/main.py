@@ -3,14 +3,22 @@ from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from backend.elastic import es
-from backend.data import logs
+from backend.correlation import correlate_events
 
 load_dotenv("backend/.env")
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 API_KEY = os.getenv("API_KEY")
 
@@ -64,6 +72,7 @@ def dashboard(
         query={"match_all": {}}
     )
     logs =[hit["_source"] for hit in response["hits"]["hits"]]
+    incidents = correlate_events(logs)
 
     total_logs = len(logs)
 
@@ -74,6 +83,14 @@ def dashboard(
     port_scans = 0
     suspicious = 0
 
+    # NEW: Incident statistics
+    total_incidents = len(incidents)
+    high_risk_incidents = 0
+
+    # NEW: Count high-risk incidents
+    for incident in incidents:
+        if incident["risk_score"] >= 70:
+            high_risk_incidents += 1
     for log in logs:
         if "severity" not in log or "event" not in log:
             continue
@@ -105,7 +122,9 @@ def dashboard(
             "low_severity": low,
             "failed_logins": failed_logins,
             "port_scans": port_scans,
-            "suspicious_events": suspicious
+            "suspicious_events": suspicious,
+            "total_incidents": total_incidents,
+            "high_risk_incidents": high_risk_incidents
         }
     }
 
@@ -161,4 +180,34 @@ def get_logs(api_key: bool = Depends(verify_api_key)):
     return {
         "status": "success",
         "logs": logs
+    }
+@app.get("/incidents")
+def get_incidents(
+    api_key: bool = Depends(verify_api_key)
+):
+
+    if not api_key:
+        return {
+            "message": "Invalid API Key"
+        }
+
+    # Get logs from Elasticsearch
+    response = es.search(
+        index="logs",
+        size=1000,
+        query={"match_all": {}}
+    )
+
+    logs = []
+
+    for hit in response["hits"]["hits"]:
+        logs.append(hit["_source"])
+
+    # Correlate related events
+    incidents = correlate_events(logs)
+
+    return {
+        "status": "success",
+        "incident_count": len(incidents),
+        "incidents": incidents
     }

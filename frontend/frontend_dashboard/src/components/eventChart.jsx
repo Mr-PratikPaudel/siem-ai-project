@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { getDashboard, getAlerts} from "../api/api";
+
 import {
   LineChart,
   Line,
@@ -28,74 +31,77 @@ const alertTrend = [
 ];
 
 
-// SEVERITY DATA
-
-const severityData = [
-  {
-    name: "Critical",
-    count: 8,
-    color: "#ef4444",
-  },
-  {
-    name: "High",
-    count: 18,
-    color: "#f97316",
-  },
-  {
-    name: "Medium",
-    count: 35,
-    color: "#eab308",
-  },
-  {
-    name: "Low",
-    count: 24,
-    color: "#3b82f6",
-  },
-  {
-    name: "Info",
-    count: 15,
-    color: "#22c55e",
-  },
-];
-
-
-// RECENT ALERTS
-
-const recentAlerts = [
-  {
-    id: 1,
-    type: "Brute Force Attack",
-    source: "192.168.1.25",
-    severity: "Critical",
-    time: "2 min ago",
-  },
-  {
-    id: 2,
-    type: "Port Scanning",
-    source: "10.0.0.15",
-    severity: "High",
-    time: "5 min ago",
-  },
-  {
-    id: 3,
-    type: "Suspicious Login",
-    source: "192.168.1.42",
-    severity: "Medium",
-    time: "8 min ago",
-  },
-  {
-    id: 4,
-    type: "Unusual Network Traffic",
-    source: "10.0.0.21",
-    severity: "Low",
-    time: "12 min ago",
-  },
-];
-
 
 // DASHBOARD
 
 function Dashboard() {
+   const [dashboardData, setDashboardData] = useState(null);
+   const [recentAlerts, setRecentAlerts] = useState([]);
+
+  useEffect(() => {
+    getDashboard()
+      .then((response) => {
+        console.log("Dashboard data:", response.data);
+        setDashboardData(response.data.dashboard);
+      })
+      .catch((error) => {
+        console.log("Dashboard API Error:", error);
+      });
+  }, []);
+
+useEffect(() => {
+  getAlerts()
+    .then((response) => {
+      console.log("RECENT ALERTS RESPONSE:", response);
+      console.log("RECENT ALERTS DATA:", response.data);
+
+      const latest = response.data.slice(-4).reverse();
+
+          console.log("LATEST 4 ALERTS:", latest);
+
+          setRecentAlerts(latest);
+    })
+    .catch((error) => {
+      console.error("Recent Alerts Error:", error);
+    });
+}, []);
+
+  if (!dashboardData) {
+    return (
+      <div className="card">
+        <h3>Loading dashboard...</h3>
+      </div>
+    );
+  }
+
+  const severityData = [
+    {
+      name: "Critical",
+      count: dashboardData.critical_severity || 0,
+      color: "#ef4444",
+    },
+    {
+      name: "High",
+      count: dashboardData.high_severity || 0,
+      color: "#f97316",
+    },
+    {
+      name: "Medium",
+      count: dashboardData.medium_severity || 0,
+      color: "#eab308",
+    },
+    {
+      name: "Low",
+      count: dashboardData.low_severity || 0,
+      color: "#3b82f6",
+    },
+    {
+      name: "Info",
+      count: dashboardData.info_severity || 0,
+      color: "#22c55e",
+    },
+  ];
+
   return (
     <div className="dashboard">
 
@@ -126,7 +132,7 @@ function Dashboard() {
         <div className="stat-card total">
           <div>
             <p>Total Alerts</p>
-            <h2>100</h2>
+            <h2>{dashboardData.total_logs}</h2>
           </div>
 
           <div className="stat-icon">
@@ -139,7 +145,7 @@ function Dashboard() {
         <div className="stat-card critical">
           <div>
             <p>Critical</p>
-            <h2>8</h2>
+            <h2>{dashboardData.critical_severity || 0}</h2>
           </div>
 
           <div className="stat-icon">
@@ -152,7 +158,7 @@ function Dashboard() {
         <div className="stat-card high">
           <div>
             <p>High</p>
-            <h2>18</h2>
+            <h2>{dashboardData.high_severity}</h2>
           </div>
 
           <div className="stat-icon">
@@ -165,7 +171,7 @@ function Dashboard() {
         <div className="stat-card medium">
           <div>
             <p>Medium</p>
-            <h2>35</h2>
+            <h2>{dashboardData.medium_severity}</h2>
           </div>
 
           <div className="stat-icon">
@@ -178,7 +184,7 @@ function Dashboard() {
         <div className="stat-card low">
           <div>
             <p>Low</p>
-            <h2>24</h2>
+            <h2>{dashboardData.low_severity}</h2>
           </div>
 
           <div className="stat-icon">
@@ -191,7 +197,7 @@ function Dashboard() {
         <div className="stat-card info">
           <div>
             <p>Info</p>
-            <h2>15</h2>
+            <h2>{dashboardData.info_severity || 0}</h2>
           </div>
 
           <div className="stat-icon">
@@ -524,7 +530,7 @@ function Dashboard() {
 
                   <td>
                     <strong>
-                      {alert.type}
+                      {alert.attack}
                     </strong>
                   </td>
 
