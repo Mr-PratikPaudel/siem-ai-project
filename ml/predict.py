@@ -64,7 +64,7 @@ if __name__ == "__main__":
     import pandas as pd
 
     # ✅ NEW
-    df = pd.read_csv(os.path.join(BASE_DIR, "dataset", "clean_dataset_sample.csv"))
+    df = pd.read_csv(os.path.join(BASE_DIR, "dataset", "clean_dataset_sample.csv"),encoding="utf-16")
     encoding="utf-16"
 
     X = df.drop("Label", axis=1)
