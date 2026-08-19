@@ -53,6 +53,24 @@ def detect_severity(event: str):
 
     elif "login successful" in event:
         return "LOW"
+    elif (
+        "system health" in event
+        or "routine" in event
+        or "system check" in event
+        or "health check" in event
+        or "heartbeat" in event
+        or "service running" in event
+        or "service started" in event
+        or "service stopped" in event
+        or "system started" in event
+        or "system shutdown" in event
+        or "backup completed" in event
+        or "update completed" in event
+        or "configuration updated" in event
+        or "connection established" in event
+        or "monitoring active" in event
+    ):
+        return "INFO"
 
     else:
         return "LOW"
@@ -79,6 +97,7 @@ def dashboard(
     high = 0
     medium = 0
     low = 0
+    info=0
     failed_logins = 0
     port_scans = 0
     suspicious = 0
@@ -103,6 +122,8 @@ def dashboard(
             medium += 1
         elif severity == "low":
             low += 1
+        elif severity == "info":
+            info += 1
 
         if "failed login" in event:
             failed_logins += 1
@@ -120,6 +141,7 @@ def dashboard(
             "high_severity": high,
             "medium_severity": medium,
             "low_severity": low,
+            "info_severity": info,
             "failed_logins": failed_logins,
             "port_scans": port_scans,
             "suspicious_events": suspicious,
