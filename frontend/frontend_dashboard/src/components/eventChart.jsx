@@ -53,8 +53,7 @@ useEffect(() => {
     .then((response) => {
 const latest = response.data
   .filter((alert) => alert.attack && alert.source && alert.time)
-  .slice(-4)
-  .reverse();
+  .slice(0,4);
    console.log("LATEST 4 ALERTS:", latest);
 
           setRecentAlerts(latest);

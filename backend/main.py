@@ -191,7 +191,12 @@ def get_logs(api_key: bool = Depends(verify_api_key)):
     response = es.search(
         index="logs",
         size=50,
-        query={"match_all": {}}
+        query={"match_all": {}},
+        sort=[
+            {"timestamp": {"order": "desc",
+                           "unmapped_type": "date"
+                }}
+        ]
     )
 
     logs = []
